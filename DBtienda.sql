@@ -3,6 +3,7 @@ CREATE DATABASE DBtienda;
 USE DBtienda;
 
 DROP TABLE USUARIO;
+DROP TABLE USEREMPSTL;
 
 -- TABLAS DE USUARIOS --
 
@@ -11,8 +12,7 @@ CREATE TABLE Usuario (
     uuid_user CHAR(36) PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100),
-    email VARCHAR(150) NOT NULL,
-    telefono VARCHAR(100) NOT NULL
+    email VARCHAR(150) UNIQUE NOT NULL
 )ENGINE = InnoDB
 DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;
@@ -22,6 +22,7 @@ CREATE TABLE UserCustomer (
     uuid_user CHAR(36) PRIMARY KEY,
     username VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
+    telefono VARCHAR(100) NOT NULL,
     FOREIGN KEY (uuid_user) REFERENCES Usuario(uuid_user)
 )ENGINE = InnoDB
 DEFAULT CHARSET = utf8mb4
@@ -41,6 +42,7 @@ CREATE TABLE UserEmpsTL (
     uuid_user CHAR(36) PRIMARY KEY,
     username VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
+    telefono VARCHAR(100) NOT NULL,
     rol ENUM('stl_emps','stl_administrador','stl_super_administrador') NOT NULL,
     FOREIGN KEY (uuid_user) REFERENCES Usuario(uuid_user)
 )ENGINE = InnoDB
