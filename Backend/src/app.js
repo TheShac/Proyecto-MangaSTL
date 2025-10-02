@@ -1,6 +1,6 @@
 import express from 'express';
 import session from 'express-session';
-import { pool } from './config/db';
+import { pool } from '.config/db';
 import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
