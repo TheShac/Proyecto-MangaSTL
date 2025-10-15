@@ -7,11 +7,12 @@ import { EmployeeModel } from '../models/employee.model.js';
 dotenv.config();
 
 export const AuthController = {
+
+  // LOGIN DE USUARIOS
   login: async (req, res) => {
-    const { identifier, password } = req.body; // puede ser email o username
+    const { identifier, password } = req.body;
 
     try {
-      // Buscar en ambas tablas
       let user = await CustomerModel.findByEmailOrUsername(identifier);
       let userType = 'customer';
 
@@ -25,7 +26,6 @@ export const AuthController = {
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) return res.status(401).json({ message: 'Contraseña incorrecta' });
 
-      // Generar token JWT
       const token = jwt.sign(
         {
           id: user.id,
@@ -44,6 +44,7 @@ export const AuthController = {
     }
   },
 
+  // REGISTRO DE USUARIOS CUSTOMER
   registerCustomer: async (req, res) => {
     try {
       const { username, email, password, nombre, apellido } = req.body;
@@ -56,6 +57,7 @@ export const AuthController = {
     }
   },
 
+  // REGISTRO DE USUARIOS EMPLOYEE
   registerEmployee: async (req, res) => {
     try {
       const { username, email, password, id_role } = req.body;
