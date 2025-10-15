@@ -1,38 +1,70 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { gerUsuarioByEmailOrUsername } from "../models/usuarioSTL";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+import { CustomerModel } from '../models/customer.model.js';
+import { EmployeeModel } from '../models/employee.model.js';
 
-export const login = async (req, res) => {
+dotenv.config();
 
-    const { identificador, password } = req.body;
+export const AuthController = {
+  login: async (req, res) => {
+    const { identifier, password } = req.body; // puede ser email o username
 
-    try{
-        const user = await gerUsuarioByEmailOrUsername(identificador);
+    try {
+      // Buscar en ambas tablas
+      let user = await CustomerModel.findByEmailOrUsername(identifier);
+      let userType = 'customer';
 
-        if(!user || !user.stl_password && !user.password) return res.status(401).json({ message: 'Usuario no encontrado o sin contraseña'});
-        
-        let hashedPassword;
-        let role;
+      if (!user) {
+        user = await EmployeeModel.findByEmailOrUsername(identifier);
+        userType = 'employee';
+      }
 
-        if(user.stl_password){
-            hashedPassword = user.stl_password;
-            role = 'cliente_registrado';
-        }
-        else if(user.password){
-            hashedPassword = user.password;
-            role = user.role;
-        }
-        else{
-            return res.status(401).json({ message: 'Usuario anonimo'});
-        }
+      if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-        const isMatch = await bcrypt.compare(password, hashedPassword);
-        if(!isMatch) return res.status(401).json({ message: 'Contraseña incorrecta'});
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) return res.status(401).json({ message: 'Contraseña incorrecta' });
 
-        const token = jwt.sign({ uuid: user.uuid_user, role }, process.env.JWT_SECRET , { expiresIn: process.env.JWT_EXPIRES_IN });
-        res.json({ token, role });
+      // Generar token JWT
+      const token = jwt.sign(
+        {
+          id: user.id,
+          username: user.username,
+          role: userType === 'employee' ? user.role_name : 'client',
+          userType,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '3h' }
+      );
+
+      res.json({ message: 'Login exitoso', token, userType });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error en el servidor' });
     }
-    catch(err){
-        res.status(500).json({ error: err.message });  
+  },
+
+  registerCustomer: async (req, res) => {
+    try {
+      const { username, email, password, nombre, apellido } = req.body;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const id = await CustomerModel.create({ username, email, password: hashedPassword, nombre, apellido });
+      res.json({ message: 'Cliente registrado correctamente', id });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error en el servidor' });
     }
+  },
+
+  registerEmployee: async (req, res) => {
+    try {
+      const { username, email, password, id_role } = req.body;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const id = await EmployeeModel.create({ username, email, password: hashedPassword, id_role });
+      res.json({ message: 'Empleado registrado correctamente', id });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error en el servidor' });
+    }
+  },
 };
