@@ -1,16 +1,29 @@
+// src/middlewares/auth.middleware.js
+
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
-export const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ message: 'Token no proporcionado' });
+export const protect = (req, res, next) => {
+    let token;
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return res.status(403).json({ message: 'Token inválido o expirado' });
-  }
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+        return res.status(401).json({ message: 'No autenticado. Token no encontrado.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        req.user = decoded; 
+        
+        next();
+
+    } catch (error) {
+        return res.status(401).json({ message: 'Token inválido o expirado.' });
+    }
 };

@@ -4,7 +4,7 @@ export const EmployeeModel = {
   // Buscar usuario por email o username
   findByEmailOrUsername: async (identifier) => {
     const [rows] = await pool.query(
-      `SELECT e.*, r.role_name FROM UserEmps_STL e 
+      `SELECT e.*, r.nombre_rol FROM UserEmps_STL e 
        LEFT JOIN Role r ON e.id_role = r.id_role
        WHERE e.emp_email = ? OR e.emp_username = ?`,
       [identifier, identifier]

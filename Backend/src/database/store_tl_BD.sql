@@ -16,6 +16,11 @@ CREATE TABLE Editorial (
 DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;
 
+SELECT * FROM Role;
+INSERT INTO Role (nombre_rol) VALUES
+('stl_emp'),
+('stl_administrador'),
+('stl_superadministrador');
 CREATE TABLE Role (
   id_role INT AUTO_INCREMENT PRIMARY KEY,
   nombre_rol VARCHAR(50) NOT NULL UNIQUE
@@ -24,6 +29,8 @@ DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;
 
 -- TABLAS DE USUARIOS
+
+SELECT * FROM UserCustomer;
 CREATE TABLE UserCustomer (
   uuid_customer CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   stl_username VARCHAR(50) NOT NULL UNIQUE,
@@ -37,6 +44,7 @@ CREATE TABLE UserCustomer (
 DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;
 
+SELECT * FROM UserEmps_STL;
 CREATE TABLE UserEmps_STL (
   uuid_emps CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   emp_email VARCHAR(100) NOT NULL UNIQUE,

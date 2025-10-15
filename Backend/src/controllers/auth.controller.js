@@ -28,7 +28,7 @@ export const AuthController = {
       const storedPasswordHash = user.stl_password || user.emp_password;
       if (!storedPasswordHash) return res.status(500).json({ message: 'Error de configuración: Contraseña no recuperada.' });
 
-      const isValid = await bcrypt.compare(password, user.password);
+      const isValid = await bcrypt.compare(password, storedPasswordHash);
       if (!isValid) return res.status(401).json({ message: 'Contraseña incorrecta' });
 
       const idKey = userType === 'employee' ? 'uuid_emps' : 'uuid_customer';
