@@ -69,4 +69,13 @@ export const EmployeeModel = {
     );
     return result.affectedRows;
   },
+  
+  // Actualizar contraseña del usuario empleado
+  updatePassword: async (uuid_emps, hashedPassword) => {
+    const [result] = await pool.query(
+      `UPDATE UserEmps_STL SET emp_password = ? WHERE uuid_emps = ?`,
+      [hashedPassword, uuid_emps]
+    );
+    return result.affectedRows;
+  },
 };

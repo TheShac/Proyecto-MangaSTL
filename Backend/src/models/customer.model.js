@@ -59,4 +59,13 @@ export const CustomerModel = {
     return result.affectedRows;
   },
 
+  // Actualizar contraseña del usuario cliente
+  updatePassword: async (uuid_customer, hashedPassword) => {
+    const [result] = await pool.query(
+      `UPDATE UserCustomer SET stl_password = ? WHERE uuid_customer = ?`,
+      [hashedPassword, uuid_customer]
+    );
+    return result.affectedRows;
+  },
+
 };
