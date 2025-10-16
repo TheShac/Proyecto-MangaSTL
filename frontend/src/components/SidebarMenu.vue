@@ -1,45 +1,45 @@
 <template>
   <transition name="slide">
-    <div
-      v-if="isOpen"
-      class="fixed inset-0 bg-black bg-opacity-40 z-40 flex justify-end"
-      @click.self="$emit('close')"
-    >
-      <div class="bg-white w-72 h-full p-6 overflow-y-auto shadow-lg">
-        <div class="flex justify-between items-center mb-6">
+    <div v-if="open" class="fixed inset-0 z-40 flex">
+      <!-- backdrop -->
+      <div class="fixed inset-0 bg-black bg-opacity-40" @click="$emit('close')"></div>
+
+      <!-- panel -->
+      <aside class="ml-auto w-80 bg-white h-full shadow-lg p-6 overflow-auto">
+        <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-bold">Manga Sempai</h2>
-          <button @click="$emit('close')"><i class="fa-solid fa-xmark text-xl"></i></button>
+          <button @click="$emit('close')" class="p-1 rounded hover:bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
 
-        <ul class="space-y-4">
-          <li class="hover:text-blue-500 cursor-pointer">En Stock</li>
-          <li class="hover:text-blue-500 cursor-pointer">Tomos a pedido</li>
-          <li class="hover:text-blue-500 cursor-pointer">Todos los Productos</li>
-          <li class="hover:text-blue-500 cursor-pointer">Tomo único</li>
-          <li class="hover:text-blue-500 cursor-pointer">Editorial</li>
-          <li class="hover:text-blue-500 cursor-pointer">Figuras</li>
-          <li class="hover:text-blue-500 cursor-pointer">Bolsas</li>
+        <ul class="divide-y">
+          <li class="py-3 cursor-pointer hover:text-yellow-600">En Stock</li>
+          <li class="py-3 cursor-pointer hover:text-yellow-600">Tomos a pedido</li>
+          <li class="py-3 cursor-pointer hover:text-yellow-600">Todos los Productos</li>
+          <li class="py-3 cursor-pointer hover:text-yellow-600">Tomo único</li>
+          <li class="py-3 cursor-pointer hover:text-yellow-600">Editorial</li>
+          <li class="py-3 cursor-pointer hover:text-yellow-600">Figuras</li>
+          <li class="py-3 cursor-pointer hover:text-yellow-600">Bolsas</li>
         </ul>
 
-        <div class="mt-10 border-t pt-4 text-sm text-gray-600">
+        <div class="mt-6 border-t pt-4 text-sm text-gray-600">
           <p class="font-semibold mb-2">Contáctanos</p>
-          <p>📧 administracion@mangasempai.cl</p>
-          <p>📞 56932689586</p>
+          <p class="flex items-center gap-2"><span>✉️</span> administracion@mangasempai.cl</p>
+          <p class="flex items-center gap-2 mt-2"><span>📞</span> 56932689586</p>
         </div>
-      </div>
+      </aside>
     </div>
   </transition>
 </template>
 
 <script setup>
-defineProps({ isOpen: Boolean });
+defineProps({ open: { type: Boolean, default: false } });
 </script>
 
-<style scoped>
-.slide-enter-active, .slide-leave-active {
-  transition: transform 0.3s ease;
-}
-.slide-enter-from, .slide-leave-to {
-  transform: translateX(100%);
-}
+<style>
+.slide-enter-active, .slide-leave-active { transition: transform .25s ease; }
+.slide-enter-from, .slide-leave-to { transform: translateX(100%); }
 </style>

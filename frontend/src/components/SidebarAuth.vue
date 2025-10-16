@@ -1,49 +1,66 @@
 <template>
   <transition name="slide">
-    <div
-      v-if="isOpen"
-      class="fixed inset-0 bg-black bg-opacity-40 z-40 flex justify-end"
-      @click.self="$emit('close')"
-    >
-      <div class="bg-white w-80 h-full p-6 shadow-lg">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-bold">Iniciar Sesión</h2>
-          <button @click="$emit('close')"><i class="fa-solid fa-xmark text-xl"></i></button>
+    <div v-if="open" class="fixed inset-0 z-40 flex">
+      <div class="fixed inset-0 bg-black bg-opacity-40" @click="$emit('close')"></div>
+
+      <aside class="ml-auto w-96 bg-white h-full shadow-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Iniciar sesión</h2>
+          <button @click="$emit('close')" class="p-1 rounded hover:bg-gray-100">✕</button>
         </div>
 
-        <form @submit.prevent="loginUser" class="space-y-4">
-          <input v-model="identifier" type="text" placeholder="Email o usuario" class="w-full border p-2 rounded" />
-          <input v-model="password" type="password" placeholder="Contraseña" class="w-full border p-2 rounded" />
-          <button class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Entrar</button>
-        </form>
+        <div class="space-y-4">
+          <input v-model="identifier" type="text" placeholder="Email o usuario" class="w-full p-3 border rounded" />
+          <input v-model="password" type="password" placeholder="Contraseña" class="w-full p-3 border rounded" />
+          <button @click="login" class="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded">Entrar</button>
 
-        <p class="mt-4 text-sm text-center">
-          ¿No tienes cuenta?
-          <router-link to="/register" class="text-blue-600 hover:underline" @click="$emit('close')">
-            Crear una
-          </router-link>
-        </p>
-      </div>
+          <p class="text-sm text-center">
+            ¿No tienes cuenta?
+            <a @click="goRegister" class="text-yellow-600 cursor-pointer">Crear una</a>
+          </p>
+        </div>
+      </aside>
     </div>
   </transition>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
+
+const props = defineProps({ open: Boolean });
+const emit = defineEmits(['close']);
+
 const identifier = ref('');
 const password = ref('');
+const router = useRouter();
 
-const loginUser = () => {
-  console.log('Iniciando sesión con', identifier.value, password.value);
+const login = async () => {
+  try {
+    // Ajusta la URL según tu backend
+    const res = await axios.post('http://localhost:3000/api/auth/login', {
+      identifier: identifier.value,
+      password: password.value,
+    });
+
+    // guarda token (a futuro: mejor HttpOnly cookie)
+    localStorage.setItem('accessToken', res.data.accessToken);
+    // cerrar sidebar y redirigir
+    emit('close');
+    router.push({ name: 'Dashboard' });
+  } catch (err) {
+    alert(err.response?.data?.message || 'Error login');
+  }
 };
-defineProps({ isOpen: Boolean });
+
+const goRegister = () => {
+  emit('close');
+  router.push({ path: '/register' });
+};
 </script>
 
-<style scoped>
-.slide-enter-active, .slide-leave-active {
-  transition: transform 0.3s ease;
-}
-.slide-enter-from, .slide-leave-to {
-  transform: translateX(100%);
-}
+<style>
+.slide-enter-active, .slide-leave-active { transition: transform .25s ease; }
+.slide-enter-from, .slide-leave-to { transform: translateX(100%); }
 </style>
