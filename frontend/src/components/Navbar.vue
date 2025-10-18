@@ -31,6 +31,17 @@
           <router-link to="/register" class="btn btn-warning text-white btn-sm fw-bold">Registrarse</router-link>
         </div>
         
+        <div v-else class="dropdown me-3">
+          <button class="btn btn-link text-dark dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-person-circle fs-5"></i> Mi Cuenta
+          </button>
+            <ul class="dropdown-menu" aria-labelledby="profileDropdown">
+              <li><router-link to="/profile" class="dropdown-item">Mi Perfil</router-link></li>
+              <li><router-link to="/orders" class="dropdown-item">Mis Pedidos</router-link></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#" @click="logout">Cerrar Sesión</a></li>
+            </ul>
+        </div>
         <button @click="goCart" class="btn btn-sm btn-light position-relative me-2">
             <i class="bi bi-cart"></i> 
             <span v-if="cartCount" class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">

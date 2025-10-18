@@ -8,6 +8,46 @@ dotenv.config();
 
 const ALLOWED_EMPLOYEE_CREATOR_ROLES = process.env.ALLOWED_EMPLOYEE_CREATOR_ROLES ? process.env.ALLOWED_EMPLOYEE_CREATOR_ROLES.split(',').map(role => role.trim()) : ['stl_administrador', 'stl_superadministrador'];
 
+export const Login = async (req, res) => {
+    const { identifier, password } = req.body;
+
+    try {
+      let user = await CustomerModel.findByEmailOrUsername(identifier);
+      let userType = 'customer';
+
+      if (!user) {
+        user = await EmployeeModel.findByEmailOrUsername(identifier);
+        userType = 'employee';
+      };
+
+      if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+      const storedPasswordHash = user.stl_password || user.emp_password;
+      if (!storedPasswordHash) return res.status(500).json({ message: 'Error de configuración: Contraseña no recuperada.' });
+
+      const isValid = await bcrypt.compare(password, storedPasswordHash);
+      if (!isValid) return res.status(401).json({ message: 'Contraseña incorrecta' });
+
+      const idKey = userType === 'employee' ? 'uuid_emps' : 'uuid_customer';
+            const usernameKey = userType === 'employee' ? 'emp_username' : 'stl_username';
+
+      const token = jwt.sign(
+        {
+          id: user[idKey],
+          username: user[usernameKey],
+          role: userType === 'employee' ? user.nombre_rol : 'customer',
+          userType,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '3h' }
+      );
+
+      res.json({ message: 'Login exitoso', token, userType, role: userType === 'employee' ? user.nombre_rol : 'customer' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error en el servidor' });
+    }
+};
 export const AuthController = {
 
   // LOGIN DE USUARIOS
@@ -218,7 +258,7 @@ export const AuthController = {
         res.json({ message: 'Contraseña restablecida correctamente.' });
 
       } catch (error) {
-        // Manejar token inválido o expirado
+
         if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
           return res.status(401).json({ message: 'El enlace de restablecimiento es inválido o ha expirado.' });
         }

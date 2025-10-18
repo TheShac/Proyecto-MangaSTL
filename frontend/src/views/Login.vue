@@ -4,6 +4,7 @@
       <h2 class="text-center text-dark mb-4">Iniciar Sesión</h2>
       
       <form @submit.prevent="login">
+        
         <div class="mb-3">
           <label for="identifier" class="form-label text-dark">Email o Nombre de Usuario</label>
           <input 
@@ -59,6 +60,48 @@
 </template>
 
 <script setup>
-// Lógica de script sin cambios
-// ...
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
+
+// --- ESTADO Y VARIABLES REACTIVAS ---
+const identifier = ref(''); 
+const password = ref('');
+const isLoading = ref(false);
+const error = ref(null);
+
+const router = useRouter(); // Instancia para la navegación
+
+// --- FUNCIÓN DE INICIO DE SESIÓN ---
+const login = async () => {
+  error.value = null;
+  isLoading.value = true;
+
+  try {
+    // 1. LLAMADA A LA API
+    const response = await axios.post('http://localhost:3000/api/auth/login', {
+      identifier: identifier.value,
+      password: password.value,
+    });
+
+    // 2. MANEJO DEL TOKEN
+    const token = response.data.token; // EL BACKEND DEVUELVE 'token'
+    
+    // Almacena el token para futuras peticiones (Protección)
+    localStorage.setItem('accessToken', token);
+    
+    // 3. REDIRECCIÓN
+    router.push({ name: 'Dashboard' }); 
+
+  } catch (err) {
+    // 4. MANEJO DE ERRORES (ej. credenciales incorrectas)
+    console.error('Error de Inicio de Sesión:', err);
+    
+    // Usamos el mensaje del backend o un mensaje por defecto
+    error.value = err.response?.data?.message || 'Credenciales inválidas. Verifica tus datos.';
+
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
