@@ -9,7 +9,9 @@
                 :class="{ 'active bg-white shadow-sm': activeTab === 'profile' }"
                 @click="activeTab = 'profile'"
                 type="button" role="tab" aria-selected="true">
-          <i class="bi bi-person me-2 fs-5"></i> Perfil
+          <img v-if="profile.image_profile" :src="profile.image_profile" alt="Foto de Perfil"
+               class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;">
+          <i v-else class="bi bi-person me-2 fs-5"></i> Perfil
         </button>
       </li>
       <li class="nav-item flex-grow-1" role="presentation">
@@ -50,21 +52,21 @@
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label class="form-label text-muted small">Nombre completo</label>
-                <input v-if="editPersonal" type="text" class="form-control" v-model="profile.fullName">
-                <p v-else class="form-control-plaintext fw-semibold">{{ profile.fullName }}</p>
+                <input v-if="editPersonal" type="text" class="form-control" v-model="profile.nombre">
+                <p v-else class="form-control-plaintext fw-semibold">{{ profile.nombre }} {{ profile.apellido }}</p>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label text-muted small">Email</label>
-                <p class="form-control-plaintext fw-semibold">{{ profile.email }}</p>
+                <p class="form-control-plaintext fw-semibold">{{ profile.stl_email || profile.emp_email || 'N/A' }}</p> 
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label text-muted small">Teléfono</label>
-                <input v-if="editPersonal" type="text" class="form-control" v-model="profile.phone">
-                <p v-else class="form-control-plaintext fw-semibold">{{ profile.phone }}</p>
+                <input v-if="editPersonal" type="text" class="form-control" v-model="editablePhone">
+                <p v-else class="form-control-plaintext fw-semibold">{{ profile.stl_telefono || profile.emp_telefono || 'N/A' }}</p>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label text-muted small">Nombre de Usuario</label>
-                <p class="form-control-plaintext fw-semibold">{{ profile.username }}</p>
+                <p class="form-control-plaintext fw-semibold">{{ profile.stl_username || profile.emp_username || 'N/A' }}</p>
               </div>
             </div>
             <div v-if="editPersonal" class="d-flex justify-content-end mt-3">
@@ -97,7 +99,7 @@
                 <p v-else class="form-control-plaintext fw-semibold">{{ profile.postalCode }}</p>
               </div>
             </div>
-             <div v-if="editAddress" class="d-flex justify-content-end mt-3">
+              <div v-if="editAddress" class="d-flex justify-content-end mt-3">
                 <button class="btn btn-secondary me-2" @click="cancelEdit('address')">Cancelar</button>
                 <button class="btn btn-primary" @click="saveAddress">Guardar</button>
             </div>
@@ -106,222 +108,222 @@
       </div>
 
       <div v-if="activeTab === 'orders'" class="tab-pane fade show active">
-        <div class="card shadow-sm border-0 p-4">
-          <h5 class="card-title fw-bold mb-3">Últimos 10 Pedidos</h5>
-          <div v-if="orders.length === 0" class="alert alert-info mb-0">
-            No has realizado ningún pedido aún.
-          </div>
-          <div v-else>
-            <div class="list-group">
-              <div v-for="order in orders" :key="order.id" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2 rounded">
-                <div>
-                  <h6 class="mb-1 fw-bold">Pedido #{{ order.id }}</h6>
-                  <small class="text-muted">Fecha: {{ order.date }}</small><br>
-                  <small class="text-muted">Estado: <span :class="{'text-success': order.status === 'Completado', 'text-warning': order.status === 'Pendiente'}">{{ order.status }}</span></small>
-                </div>
-                <span class="badge bg-primary rounded-pill">${{ order.total.toLocaleString('es-CL') }}</span>
-              </div>
+         <div class="card shadow-sm border-0 p-4">
+            <h5 class="card-title fw-bold mb-3">Últimos 10 Pedidos</h5>
+            <div v-if="orders.length === 0" class="alert alert-info mb-0">
+               No has realizado ningún pedido aún.
             </div>
-          </div>
-        </div>
+            <div v-else>
+               <div class="list-group">
+                  <div v-for="order in orders" :key="order.id" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2 rounded">
+                     <div>
+                        <h6 class="mb-1 fw-bold">Pedido #{{ order.id }}</h6>
+                        <small class="text-muted">Fecha: {{ order.date }}</small><br>
+                        <small class="text-muted">Estado: <span :class="{'text-success': order.status === 'Completado', 'text-warning': order.status === 'Pendiente'}">{{ order.status }}</span></small>
+                     </div>
+                     <span class="badge bg-primary rounded-pill">${{ order.total.toLocaleString('es-CL') }}</span>
+                  </div>
+               </div>
+            </div>
+         </div>
       </div>
 
       <div v-if="activeTab === 'favorites'" class="tab-pane fade show active">
-        <div class="card shadow-sm border-0 p-4">
-          <h5 class="card-title fw-bold mb-3">Mi Lista de Deseos</h5>
-          <div v-if="wishlist.length === 0" class="alert alert-info mb-0">
-            Tu lista de deseos está vacía.
-          </div>
-          <div v-else class="row row-cols-1 row-cols-md-3 g-3">
-            <div class="col" v-for="item in wishlist" :key="item.id">
-              <div class="card h-100">
-                <img :src="item.image" class="card-img-top" :alt="item.name" style="height: 200px; object-fit: cover;">
-                <div class="card-body">
-                  <h6 class="card-title fw-bold">{{ item.name }}</h6>
-                  <p class="card-text text-muted small">{{ item.category }}</p>
-                  <p class="fw-bold text-primary">${{ item.price.toLocaleString('es-CL') }}</p>
-                  <div class="d-flex justify-content-between">
-                    <button class="btn btn-sm btn-outline-success">Añadir al Carrito</button>
-                    <button class="btn btn-sm btn-outline-danger" @click="removeFromWishlist(item.id)">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
+         <div class="card shadow-sm border-0 p-4">
+            <h5 class="card-title fw-bold mb-3">Mi Lista de Deseos</h5>
+            <div v-if="wishlist.length === 0" class="alert alert-info mb-0">
+               Tu lista de deseos está vacía.
             </div>
-          </div>
-        </div>
+            <div v-else class="row row-cols-1 row-cols-md-3 g-3">
+               <div class="col" v-for="item in wishlist" :key="item.id">
+                  <div class="card h-100">
+                     <img :src="item.image" class="card-img-top" :alt="item.name" style="height: 200px; object-fit: cover;">
+                     <div class="card-body">
+                        <h6 class="card-title fw-bold">{{ item.name }}</h6>
+                        <p class="card-text text-muted small">{{ item.category }}</p>
+                        <p class="fw-bold text-primary">${{ item.price.toLocaleString('es-CL') }}</p>
+                        <div class="d-flex justify-content-between">
+                           <button class="btn btn-sm btn-outline-success">Añadir al Carrito</button>
+                           <button class="btn btn-sm btn-outline-danger" @click="removeFromWishlist(item.id)">
+                              <i class="bi bi-x-lg"></i>
+                           </button>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
       </div>
 
       <div v-if="activeTab === 'settings'" class="tab-pane fade show active">
-        <div class="card shadow-sm border-0 p-4">
-          <h5 class="card-title fw-bold mb-3">Configuración de la Cuenta</h5>
-          <p class="text-muted">Aquí podrás gestionar la configuración de tu cuenta, como cambiar la contraseña, notificaciones, etc.</p>
-          <button class="btn btn-warning">Cambiar Contraseña</button>
-        </div>
+         <div class="card shadow-sm border-0 p-4">
+            <h5 class="card-title fw-bold mb-3">Configuración de la Cuenta</h5>
+            <p class="text-muted">Aquí podrás gestionar la configuración de tu cuenta, como cambiar la contraseña, notificaciones, etc.</p>
+            <button class="btn btn-warning">Cambiar Contraseña</button>
+         </div>
       </div>
-
+      
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 
-const activeTab = ref('profile'); // Pestaña activa por defecto
+const router = useRouter();
+const activeTab = ref('profile'); 
 
-// --- Datos del Perfil (ejemplo, se cargarían desde tu backend) ---
+// --- Datos del Perfil (Estado Inicial) ---
 const profile = ref({
-  fullName: 'Juan Pérez',
-  email: 'juan@example.com',
-  phone: '+54 11 1234-5678',
-  username: 'juanperez',
-  address: 'Av. Corrientes 1234, CABA',
-  city: 'Santiago',
-  postalCode: '1234567',
+  nombre: 'Cargando...',
+  apellido: '',
+  stl_email: null,
+  emp_email: null,
+  stl_username: null,
+  emp_username: null,
+  stl_telefono: null, // Campo para cliente
+  emp_telefono: null, // Campo para empleado
+  image_profile: null,
+  
+  // Mockup para edición de dirección
+  address: 'No hay dirección registrada',
+  city: 'N/A',
+  postalCode: 'N/A',
 });
 
-// Para guardar el estado original y permitir "cancelar" la edición
 const originalProfile = ref({});
 
 const editPersonal = ref(false);
 const editAddress = ref(false);
 
-// --- Datos de Pedidos (ejemplo) ---
+// --- Propiedad Computada para Teléfono (SOLUCIÓN al v-model) ---
+const editablePhone = computed({
+    // GET: Muestra el teléfono del cliente si existe, sino, el del empleado
+    get() {
+        return profile.value.stl_telefono || profile.value.emp_telefono || '';
+    },
+    // SET: Cuando el usuario escribe, guarda el valor en la propiedad correcta
+    set(newValue) {
+        // Priorizar el campo de cliente si existe, si no, usar el de empleado.
+        if (profile.value.stl_telefono !== undefined && profile.value.stl_telefono !== null) {
+            profile.value.stl_telefono = newValue;
+        } else if (profile.value.emp_telefono !== undefined && profile.value.emp_telefono !== null) {
+            profile.value.emp_telefono = newValue;
+        }
+        // Si ambos son null, simplemente no se guarda en el modelo real hasta que se haga el POST.
+    }
+});
+
+
+// --- MOCKUP DATA (Pedidos y Favoritos) ---
 const orders = ref([
   { id: '12345', date: '2023-10-26', total: 25000, status: 'Completado' },
   { id: '12346', date: '2023-10-25', total: 12990, status: 'Pendiente' },
   { id: '12347', date: '2023-10-20', total: 45000, status: 'Completado' },
   { id: '12348', date: '2023-10-18', total: 30000, status: 'Completado' },
   { id: '12349', date: '2023-10-15', total: 18500, status: 'Pendiente' },
-  // ... más pedidos, hasta 10
 ]);
-
-// --- Lista de Deseos (ejemplo) ---
 const wishlist = ref([
   { id: 1, name: 'Manga: One Piece Vol. 1', category: 'Manga / Shonen', price: 12990, image: 'https://picsum.photos/200/300?random=1' },
   { id: 2, name: 'Figura: Levi Ackerman', category: 'Figura / Ataque Titanes', price: 55000, image: 'https://picsum.photos/200/300?random=2' },
-  { id: 3, name: 'Comic: Batman: The Killing Joke', category: 'Comic / DC', price: 15000, image: 'https://picsum.photos/200/300?random=3' },
 ]);
 
-// --- Funciones de Edición ---
+
+// --- FUNCIONES DE CARGA Y EDICIÓN ---
+
+const fetchProfileData = async () => {
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+        // Redirigir a login si no hay token
+        router.push({ name: 'Login' });
+        return;
+    }
+
+    try {
+        const response = await axios.get('http://localhost:3000/api/auth/profile', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // Mapea y actualiza el estado del perfil
+        profile.value = {
+            ...profile.value, // Mantiene los valores de mockup de dirección
+            ...response.data, // Sobreescribe con los datos reales del backend
+        };
+        
+        // Guarda el estado original
+        originalProfile.value = { ...profile.value }; 
+
+    } catch (error) {
+        console.error('Error al cargar el perfil:', error);
+        if (error.response?.status === 401) {
+            // Manejar sesión expirada
+            // authStore.logout(); // Si tienes el store importado
+            router.push({ name: 'Login' });
+        }
+    }
+};
+
+
 const savePersonal = async () => {
-  // Lógica para enviar 'profile.fullName' y 'profile.phone' a tu backend
-  console.log('Guardando información personal:', profile.value.fullName, profile.value.phone);
-  try {
-    // const token = localStorage.getItem('accessToken');
-    // const res = await axios.put('http://localhost:3000/api/profile/personal', {
-    //   fullName: profile.value.fullName,
-    //   phone: profile.value.phone
-    // }, {
-    //   headers: { Authorization: `Bearer ${token}` }
-    // });
-    // console.log('Actualización personal exitosa:', res.data);
-    alert('Información personal actualizada con éxito!');
+    // Aquí implementas la llamada PUT para actualizar nombre, apellido y teléfono
+    alert('Funcionalidad de guardar personal pendiente de conexión al backend.');
     editPersonal.value = false;
-    originalProfile.value.fullName = profile.value.fullName;
-    originalProfile.value.phone = profile.value.phone;
-  } catch (error) {
-    console.error('Error al actualizar información personal:', error);
-    alert('Error al actualizar información personal.');
-  }
+    // ...
 };
 
 const saveAddress = async () => {
-  // Lógica para enviar 'profile.address', 'profile.city', 'profile.postalCode' a tu backend
-  console.log('Guardando dirección:', profile.value.address, profile.value.city, profile.value.postalCode);
-  try {
-    // const token = localStorage.getItem('accessToken');
-    // const res = await axios.put('http://localhost:3000/api/profile/address', {
-    //   address: profile.value.address,
-    //   city: profile.value.city,
-    //   postalCode: profile.value.postalCode
-    // }, {
-    //   headers: { Authorization: `Bearer ${token}` }
-    // });
-    // console.log('Actualización de dirección exitosa:', res.data);
-    alert('Dirección actualizada con éxito!');
+    // Aquí implementas la llamada PUT para actualizar dirección
+    alert('Funcionalidad de guardar dirección pendiente de conexión al backend.');
     editAddress.value = false;
-    originalProfile.value.address = profile.value.address;
-    originalProfile.value.city = profile.value.city;
-    originalProfile.value.postalCode = profile.value.postalCode;
-  } catch (error) {
-    console.error('Error al actualizar dirección:', error);
-    alert('Error al actualizar dirección.');
-  }
+    // ...
 };
 
 const cancelEdit = (section) => {
-  if (section === 'personal') {
-    profile.value.fullName = originalProfile.value.fullName;
-    profile.value.phone = originalProfile.value.phone;
-    editPersonal.value = false;
-  } else if (section === 'address') {
-    profile.value.address = originalProfile.value.address;
-    profile.value.city = originalProfile.value.city;
-    profile.value.postalCode = originalProfile.value.postalCode;
-    editAddress.value = false;
-  }
+    if (section === 'personal') {
+        // Restaura los campos personales desde el estado original
+        profile.value.nombre = originalProfile.value.nombre;
+        profile.value.apellido = originalProfile.value.apellido;
+        profile.value.stl_telefono = originalProfile.value.stl_telefono;
+        profile.value.emp_telefono = originalProfile.value.emp_telefono;
+        editPersonal.value = false;
+    } else if (section === 'address') {
+        // Restaura los campos de dirección desde el estado original
+        profile.value.address = originalProfile.value.address;
+        profile.value.city = originalProfile.value.city;
+        profile.value.postalCode = originalProfile.value.postalCode;
+        editAddress.value = false;
+    }
 };
 
 const removeFromWishlist = (itemId) => {
   wishlist.value = wishlist.value.filter(item => item.id !== itemId);
   alert('Producto eliminado de tu lista de deseos.');
-  // Aquí también podrías enviar una solicitud a tu backend para actualizar la wishlist
 };
 
-// --- Carga de datos al montar el componente ---
+
+// --- Carga Inicial ---
 onMounted(() => {
-  // Aquí es donde cargarías los datos reales del perfil, pedidos y wishlist
-  // desde tu backend usando axios.
-
-  // Ejemplo: Carga de datos del perfil
-  // const token = localStorage.getItem('accessToken');
-  // if (token) {
-  //   axios.get('http://localhost:3000/api/profile', {
-  //     headers: { Authorization: `Bearer ${token}` }
-  //   })
-  //   .then(response => {
-  //     profile.value = response.data;
-  //     originalProfile.value = { ...response.data }; // Guarda el estado original
-  //   })
-  //   .catch(error => {
-  //     console.error('Error al cargar el perfil:', error);
-  //     // Manejar error, e.g., redirigir a login
-  //   });
-
-  //   // Cargar pedidos
-  //   axios.get('http://localhost:3000/api/orders/me', { /* headers */ })
-  //     .then(response => orders.value = response.data.slice(0, 10)) // Obtener solo los últimos 10
-  //     .catch(error => console.error('Error al cargar pedidos:', error));
-
-  //   // Cargar wishlist
-  //   axios.get('http://localhost:3000/api/wishlist/me', { /* headers */ })
-  //     .then(response => wishlist.value = response.data)
-  //     .catch(error => console.error('Error al cargar wishlist:', error));
-  // }
-
-  // Inicializa originalProfile con los datos de ejemplo al cargar
-  originalProfile.value = { ...profile.value };
+  fetchProfileData();
+  // Se inicializa originalProfile.value.address/city/postalCode después de fetchProfileData, 
+  // pero lo hacemos aquí para el mockup inicial antes de la carga
+  originalProfile.value.address = profile.value.address;
+  originalProfile.value.city = profile.value.city;
+  originalProfile.value.postalCode = profile.value.postalCode;
 });
 </script>
 
 <style scoped>
-/* Estilos para el espacio entre la navbar y el contenido */
 .container {
-  padding-top: 4rem; /* Ajusta este valor según la altura de tu navbar fija */
+  /* Ajusta el padding superior para evitar que la navbar fija cubra el título */
+  padding-top: 4rem; 
 }
-
-/* Opcional: Estilo para los botones nav-link */
 .nav-pills .nav-link {
   transition: all 0.2s ease-in-out;
 }
 .nav-pills .nav-link:not(.active):hover {
-    background-color: #e9ecef; /* Color bg-light de Bootstrap */
-}
-
-.cursor-pointer {
-  cursor: pointer;
+  background-color: #e9ecef;
 }
 </style>

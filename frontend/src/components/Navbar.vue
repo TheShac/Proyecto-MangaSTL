@@ -7,41 +7,25 @@
         <span class="h5 text-dark fw-bold mb-0">Don Mangas</span>
       </a>
 
-      <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <router-link to="/productos" class="nav-link text-dark">Productos</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link to="/mangas" class="nav-link text-dark">Mangas</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link to="/comics" class="nav-link text-dark">Comics</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link to="/figuras" class="nav-link text-dark">Figuras</router-link>
-          </li>
-        </ul>
-      </div>
-
       <div class="d-flex align-items-center">
         
-        <div v-if="!isLoggedIn" class="d-none d-md-flex align-items-center me-3">
+        <div v-if="!authStore.isLoggedIn" class="d-none d-md-flex align-items-center me-3">
           <router-link to="/login" class="btn btn-link text-dark me-2">Iniciar Sesión</router-link>
           <router-link to="/register" class="btn btn-warning text-white btn-sm fw-bold">Registrarse</router-link>
         </div>
         
         <div v-else class="dropdown me-3">
           <button class="btn btn-link text-dark dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-person-circle fs-5"></i> Mi Cuenta
+            <i class="bi bi-person-circle fs-5"></i> Mi Cuenta
           </button>
-            <ul class="dropdown-menu" aria-labelledby="profileDropdown">
-              <li><router-link to="/profile" class="dropdown-item">Mi Perfil</router-link></li>
-              <li><router-link to="/orders" class="dropdown-item">Mis Pedidos</router-link></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="#" @click="logout">Cerrar Sesión</a></li>
-            </ul>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+            <li><router-link to="/profile" class="dropdown-item">Mi Perfil</router-link></li>
+            <li><router-link to="/orders" class="dropdown-item">Mis Pedidos</router-link></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" @click.prevent="logout">Cerrar Sesión</a></li>
+          </ul>
         </div>
+        
         <button @click="goCart" class="btn btn-sm btn-light position-relative me-2">
             <i class="bi bi-cart"></i> 
             <span v-if="cartCount" class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
@@ -70,20 +54,34 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import SidebarMenu from './SidebarMenu.vue';
 import SidebarAuth from './SidebarAuth.vue';
+import { useAuthStore } from '../stores/auth';
 
 import menuIcon from '../assets/menu.png';
 
 const router = useRouter();
+const authStore = useAuthStore();
 const menuOpen = ref(false);
 const authOpen = ref(false);
 
 const cartCount = ref(0);
 
-const isLoggedIn = computed(() => false); 
+const isLoggedIn = computed(() => authStore.isLoggedIn); 
 
 const toggleMenu = () => (menuOpen.value = !menuOpen.value);
 const toggleAuth = () => (authOpen.value = !authOpen.value);
 
 const goHome = () => router.push({ path: '/' });
 const goCart = () => router.push({ name: 'Cart' }); 
+
+const logout = () => {
+  authStore.logout(); 
+  router.push({ name: 'Dashboard' });
+};
 </script>
+
+<style scoped>
+.dropdown-menu-end {
+  right: 0;
+  left: auto;
+}
+</style>
