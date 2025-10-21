@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user.routes.js';
+import productRoutes from './routes/product.routes.js';
+
 
 dotenv.config();
 
@@ -15,5 +17,6 @@ app.use(helmet());
 app.use(morgan('dev'));
 
 app.use('/api/auth', userRoutes);
+app.use('/api/products', productRoutes);
 
 export default app;

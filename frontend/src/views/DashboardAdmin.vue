@@ -47,6 +47,11 @@
     
     <div id="page-content-wrapper">
       
+      <!-- Se ha eliminado la Navbar, pero si deseas tener un botón de toggle en móvil, añádelo aquí -->
+      <button class="btn btn-primary d-md-none m-3" @click="toggleSidebar">
+          <i class="bi bi-list"></i>
+      </button>
+
       <div class="container-fluid py-4">
         <h1 class="display-5 fw-bold text-dark mb-1">Dashboard</h1>
         <p class="lead text-muted mb-4">Resumen general de tu tienda MangaStore</p>
@@ -197,8 +202,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth'; // Importamos el store de Pinia
 
 const router = useRouter();
+const authStore = useAuthStore(); // Inicializamos el store
 
 const sidebarOpen = ref(true); 
 
@@ -208,13 +215,22 @@ const toggleSidebar = () => {
 };
 
 const logout = () => {
-  localStorage.removeItem('accessToken');
-  router.push({ name: 'Login' }); 
+  // 1. Usar la función del store (que debe limpiar localStorage y el estado isLoggedIn)
+  authStore.logout(); 
+  // 2. Redirigir al inicio o login
+  router.push({ name: 'Dashboard' }); 
 };
 
 onMounted(() => {
-  document.getElementById('wrapper').classList.remove('toggled'); 
-  sidebarOpen.value = true;
+  // Asegura que al cargar el dashboard en móvil, esté oculto
+  const isMobile = window.innerWidth < 768;
+  if (isMobile) {
+    document.getElementById('wrapper').classList.add('toggled');
+    sidebarOpen.value = false;
+  } else {
+    document.getElementById('wrapper').classList.remove('toggled');
+    sidebarOpen.value = true;
+  }
 });
 </script>
 

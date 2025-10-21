@@ -4,6 +4,7 @@ import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import Profile from '../views/Profile.vue';
 import DashboardAdminView from '../views/DashboardAdmin.vue';
+import AdminProducts from '../views/AdminProducts.vue';
 
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
@@ -11,6 +12,7 @@ const routes = [
   { path: '/register', name: 'Register', component: Register },
   { path: '/profile', name: 'Profile', component: Profile, meta: { requiresAuth: true } },
   { path: '/admin/dashboard', name:'AdminDashboard', component: DashboardAdminView, meta: { requiresAuth: true, isAdmin: true } },
+  { path: '/admin/products', name:'AdminProducts', component: AdminProducts, meta: { requiresAuth: true, isAdmin: true } },
   { path: '/:catchAll(.*)', redirect: '/' }
 ];
 

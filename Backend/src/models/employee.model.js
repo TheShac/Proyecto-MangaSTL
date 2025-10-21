@@ -8,7 +8,7 @@ export const EmployeeModel = {
        LEFT JOIN Role r ON e.id_role = r.id_role
        WHERE e.emp_email = ? OR e.emp_username = ?`,
       [identifier, identifier]
-    );
+    );  
     return rows[0];
   },
 
