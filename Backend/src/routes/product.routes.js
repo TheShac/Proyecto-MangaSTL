@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { getAllProducts, getProductById, CreateProducto, ActualizarProducto, EliminarProducto } from '../controllers/productController.js';
+import { protect } from '../Middlewares/authMiddleware.js';
+
 
 const router = Router();
 
@@ -10,12 +12,12 @@ router.get('/', getAllProducts);
 router.get('/:id', getProductById);
 
 // CREAR NUEVO PRODUCTO
-router.post('/', CreateProducto);
+router.post('/create', protect, CreateProducto);
 
 // ACTUALIZAR PRODUCTO
-router.put('/:id', ActualizarProducto);
+router.put('/:id', protect, ActualizarProducto);
 
 // ELIMINAR PRODUCTO
-router.delete('/:id', EliminarProducto);
+router.delete('/:id', protect, EliminarProducto);
 
 export default router

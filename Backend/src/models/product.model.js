@@ -13,20 +13,22 @@ export const ProductModel = {
     // OBTENER PRODUCTO POR ID
     findById: async(id) => {
         const [rows] = await pool.query(
-            `SELECT id_producto, nombre, estado, descripcion, precio, imagen_url, stock, uuid_emp_create, uuid_emp_modify FROM Producto WHERE id_producto = ?`,
+            `SELECT * FROM Producto WHERE id_producto = ?`,
             [id]
-        )
+        );
         return rows[0];
     },
 
     // CREAR NUEVO PRODUCTO
     create: async(productData) => {
+
         const { nombre, estado, descripcion, precio, imagen_url, stock, uuid_emp_create } = productData;
+
         const [result] = await pool.query(
              `INSERT INTO Producto (nombre, estado, descripcion, precio, imagen_url, stock, uuid_emp_create) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [nombre, estado, descripcion, precio, imagen_url, stock, uuid_emp_create]
+            [nombre, estado, descripcion, precio, imagen_url || '', stock, uuid_emp_create]
         );
-        return result.insertId;
+        return result;
     },
 
     // ACTUALIZAR PRODUCTO

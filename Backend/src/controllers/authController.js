@@ -23,27 +23,24 @@ export const Login = async (req, res) => {
 
       if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-      const storedPasswordHash = user.stl_password || user.emp_password;
+      const storedPasswordHash = userType === 'employee' ? user.emp_password : user.stl_password;
+
       if (!storedPasswordHash) return res.status(500).json({ message: 'Error de configuración: Contraseña no recuperada.' });
 
       const isValid = await bcrypt.compare(password, storedPasswordHash);
       if (!isValid) return res.status(401).json({ message: 'Contraseña incorrecta' });
 
-      const idKey = userType === 'employee' ? 'uuid_emps' : 'uuid_customer';
-            const usernameKey = userType === 'employee' ? 'emp_username' : 'stl_username';
+      const id = userType === 'employee' ? user.uuid_emps : user.uuid_customer;
+      const username = userType === 'employee' ? user.emp_username : user.stl_username;
+      const role = userType === 'employee' ? user.nombre_rol : 'customer';
 
       const token = jwt.sign(
-        {
-          id: user[idKey],
-          username: user[usernameKey],
-          role: userType === 'employee' ? user.nombre_rol : 'customer',
-          userType,
-        },
+        { id, username, role, userType },
         process.env.JWT_SECRET,
-        { expiresIn: '3h' }
+        { expiresIn: process.env.JWT_EXPIRES_IN || '3h' }
       );
 
-      res.json({ message: 'Login exitoso', token, userType, role: userType === 'employee' ? user.nombre_rol : 'customer' });
+      res.json({ message: 'Login exitoso', token, userType, role, id, username });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Error en el servidor' });

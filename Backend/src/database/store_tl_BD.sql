@@ -74,6 +74,7 @@ CREATE TABLE Address (
 DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;
 
+SELECT * FROM Producto;
 CREATE TABLE Producto (
   id_producto INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(255) NOT NULL,

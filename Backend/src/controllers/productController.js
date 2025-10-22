@@ -41,40 +41,50 @@ export const getProductById = async (req, res) => {
 
 // CREAR NUEVO PRODUCTO
 export const CreateProducto = async (req, res) => {
-    const { nombre, estado, descripcion, precio, imagen_url, stock } = req.body;
-    const uuid_emp_create = getEmployeeUuid(req);
-        
-    if (!nombre || !estado || precio === undefined || stock === undefined) {
-        return res.status(400).json({ success: false, message: "Faltan campos obligatorios: nombre, estado, precio, stock." });
-    }
-
     try {
-        const productData = {
-            nombre, estado, descripcion, precio, imagen_url, stock, uuid_emp_create
-        };
-        const newId = await ProductModel.create(productData);
+        if(!req.user){
+            return res.status(403).json({ message: 'Acceso denegado. Se requiere autenticación.' });
+        }
 
-        return res.status(201).json({ 
-            success: true, 
-            message: "Producto creado exitosamente.", 
-            id_producto: newId 
+        const uuid_emp_create = req.user.id;
+        if(req.user.userType !== 'employee'){
+            return res.status(403).json({ message: 'Solo los empleados pueden crear productos.' });
+        }
+        
+        const { nombre, estado, descripcion, precio, imagen_url, stock } = req.body;
+            
+        if (!nombre || !precio || !estado ) {
+            return res.status(400).json({ message: "Faltan campos obligatorios: nombre, estado, precio." });
+        }
+    
+        const result = await ProductModel.create({
+            nombre, estado, descripcion, precio, imagen_url, stock, uuid_emp_create
         });
+
+        res.json({ message: 'Producto creado correctamente', result });
     } 
     catch (error) {
         console.error('Error al crear producto:', error);
-        return res.status(500).json({ success: false, message: "Error interno al crear el producto." });
+        return res.status(500).json({ message: "Error interno al crear el producto.", detalle: error.message });
     }
 };
 
 // ACTUALIZAR PRODUCTO
 export const ActualizarProducto = async (req, res) => {
+    if(!req.user){
+        return res.status(403).json({ message: 'Acceso denegado. Se requiere autenticación.' });
+    }
+    if(req.user.userType !== 'employee'){
+        return res.status(403).json({ message: 'Solo los empleados pueden modificar productos.' });
+    }
+
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
         return res.status(400).json({ success: false, message: "ID de producto inválido." });
     }
 
     const { nombre, estado, descripcion, precio, imagen_url, stock } = req.body;
-    const uuid_emp_modify = getEmployeeUuid(req);
+    const uuid_emp_modify = req.user.id;
 
     if (!nombre || !estado || precio === undefined || stock === undefined) {
         return res.status(400).json({ success: false, message: "Faltan campos obligatorios: nombre, estado, precio, stock." });

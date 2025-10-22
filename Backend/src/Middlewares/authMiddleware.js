@@ -1,48 +1,48 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-import { CustomerModel } from '../models/customer.model.js';
 import { EmployeeModel } from '../models/employee.model.js';
-
+import { CustomerModel } from '../models/customer.model.js';
+import dotenv from 'dotenv';
 dotenv.config();
 
 export const protect = async (req, res, next) => {
-    let token;
+  let token;
 
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        token = req.headers.authorization.split(' ')[1];
-    }
-
-    if (!token) {
-        return res.status(401).json({ message: 'No autenticado. Token no encontrado.' });
-    }
-
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        const userId = decoded.id;
-        const userType = decoded.userType;
-        
-        let user;
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        if (userType === 'customer') {
-            user = await CustomerModel.findById(userId);
-        }
-        else if (userType === 'employee') {
-            user = await EmployeeModel.findById(userId);
-        }
-        if (!user) {
-            return res.status(401).json({ message: 'Token válido, pero usuario no encontrado en la base de datos.' });
-        }
+      // Buscar el usuario según su tipo
+      let user;
+      if (decoded.userType === 'employee') {
+        user = await EmployeeModel.findById(decoded.id);
+      } else {
+        user = await CustomerModel.findById(decoded.id);
+      }
 
-        req.user = {
-            ...user,
-            userType: userType,
-            role: decoded.role,
-        };
-        
-        next();
+      if (!user) {
+        return res.status(401).json({ message: 'Usuario no encontrado o inactivo.' });
+      }
 
+      req.user = {
+        id: decoded.id,
+        role: decoded.role,
+        userType: decoded.userType,
+        username: decoded.username,
+        ...user,
+      };
+
+      next();
     } catch (error) {
-        return res.status(401).json({ message: 'Token inválido o expirado.' });
+      console.error('Error de autenticación:', error);
+      res.status(401).json({ message: 'Token inválido o expirado' });
     }
+  }
+
+  if (!token) {
+    res.status(401).json({ message: 'No se proporcionó token de autenticación' });
+  }
 };
