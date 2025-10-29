@@ -73,7 +73,7 @@
 <script setup>
 // ¡Eliminamos toda la lógica del Sidebar (toggleSidebar, sidebarOpen, onMounted) ya que eso está en AdminLayout!
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '../stores/auth'; // Asegúrate de que esta ruta sea correcta
+import { useAuthStore } from '../../stores/auth'; // Asegúrate de que esta ruta sea correcta
 
 const router = useRouter();
 const authStore = useAuthStore(); 

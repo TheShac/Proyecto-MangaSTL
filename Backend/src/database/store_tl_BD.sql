@@ -45,6 +45,7 @@ DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;
 
 SELECT * FROM UserEmps_STL;
+ALTER TABLE UserEmps_STL MODIFY emp_image_profile LONGTEXT;
 CREATE TABLE UserEmps_STL (
   uuid_emps CHAR(36) PRIMARY KEY DEFAULT (UUID()),
   emp_email VARCHAR(100) NOT NULL UNIQUE,
@@ -75,6 +76,7 @@ DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;
 
 SELECT * FROM Producto;
+ALTER TABLE producto MODIFY imagen_url LONGTEXT;
 CREATE TABLE Producto (
   id_producto INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(255) NOT NULL,

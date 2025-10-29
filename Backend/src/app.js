@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user.routes.js';
 import productRoutes from './routes/product.routes.js';
+import employeeRouter from './routes/employee.routes.js'
 
 
 dotenv.config();
@@ -18,5 +19,6 @@ app.use(morgan('dev'));
 
 app.use('/api/auth', userRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/employees', employeeRouter);
 
 export default app;

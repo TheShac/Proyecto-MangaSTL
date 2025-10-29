@@ -28,7 +28,7 @@
 
                 <hr class="text-secondary my-2 mx-3">
 
-                <router-link to="/admin/users" class="list-group-item list-group-item-action bg-dark text-white">
+                <router-link to="/admin/employees" class="list-group-item list-group-item-action bg-dark text-white">
                     <i class="bi bi-person-workspace me-2"></i>Gestión de Usuarios
                 </router-link>
                 <router-link to="/admin/profile" class="list-group-item list-group-item-action bg-dark text-white">

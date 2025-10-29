@@ -51,17 +51,17 @@ export const CreateProducto = async (req, res) => {
             return res.status(403).json({ message: 'Solo los empleados pueden crear productos.' });
         }
         
-        const { nombre, estado, descripcion, precio, imagen_url, stock } = req.body;
+        const { nombre, estado, descripcion, precio, imagen_url, stock, id_editorial, id_genero } = req.body;
             
         if (!nombre || !precio || !estado ) {
             return res.status(400).json({ message: "Faltan campos obligatorios: nombre, estado, precio." });
         }
     
         const result = await ProductModel.create({
-            nombre, estado, descripcion, precio, imagen_url, stock, uuid_emp_create
+            nombre, estado, descripcion, precio, imagen_url, stock, id_editorial, id_genero, uuid_emp_create
         });
 
-        res.json({ message: 'Producto creado correctamente', result });
+        res.json({ message: 'Producto creado correctamente', id: result.id_producto });
     } 
     catch (error) {
         console.error('Error al crear producto:', error);
@@ -78,24 +78,18 @@ export const ActualizarProducto = async (req, res) => {
         return res.status(403).json({ message: 'Solo los empleados pueden modificar productos.' });
     }
 
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-        return res.status(400).json({ success: false, message: "ID de producto inválido." });
-    }
-
-    const { nombre, estado, descripcion, precio, imagen_url, stock } = req.body;
-    const uuid_emp_modify = req.user.id;
-
-    if (!nombre || !estado || precio === undefined || stock === undefined) {
-        return res.status(400).json({ success: false, message: "Faltan campos obligatorios: nombre, estado, precio, stock." });
-    }
-
     try {
-        const productData = {
-            nombre, estado, descripcion, precio, imagen_url, stock, uuid_emp_modify
-        };
-            
-        const success = await ProductModel.update(id, productData);
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ success: false, message: "ID de producto inválido." });
+        }
+
+        const { nombre, estado, descripcion, precio, imagen_url, stock, id_editorial, id_genero } = req.body;
+        const uuid_emp_modify = req.user.id;
+
+        const success = await ProductModel.update(id, {
+                nombre, estado, descripcion, precio, imagen_url, stock, id_editorial, id_genero, uuid_emp_modify
+        });
 
         if (!success) {
             return res.status(404).json({ success: false, message: "Producto no encontrado o no se realizaron cambios." });
@@ -116,9 +110,9 @@ export const EliminarProducto = async (req, res) => {
     }
 
     try {
-        const affectedRows = await ProductModel.delete(id);
+        const success = await ProductModel.delete(id);
 
-        if (affectedRows === 0) {
+        if (!success) {
             return res.status(404).json({ success: false, message: "Producto no encontrado." });
         }
         return res.status(204).send(); 

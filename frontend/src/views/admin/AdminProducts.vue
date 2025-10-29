@@ -21,20 +21,28 @@
             <thead class="table-warning">
               <tr>
                 <th>Nombre</th>
-                <th>Categoría</th>
+                <th>Estado</th>
+                <th>Descripción</th>
                 <th>Precio</th>
                 <th>Stock</th>
+                <th>Editorial</th>
+                <th>Género</th>
                 <th>Creado por</th>
+                <th>Modificado por</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="product in products" :key="product.id">
+              <tr v-for="product in products" :key="product.id_producto">
                 <td>{{ product.nombre }}</td>
-                <td>{{ product.categoria }}</td>
+                <td>{{ product.estado }}</td>
+                <td>{{ product.descripcion }}</td>
                 <td>${{ product.precio?.toFixed(2) }}</td>
                 <td>{{ product.stock }}</td>
+                <td>{{ product.editorial || 'N/A' }}</td>
+                <td>{{ product.genero || 'N/A' }}</td>
                 <td>{{ product.creado_por || 'N/A' }}</td>
+                <td>{{ product.modificado_por || 'N/A' }}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary me-2" @click="openModal(true, product)">
                     <i class="bi bi-pencil"></i>
@@ -45,7 +53,7 @@
                 </td>
               </tr>
               <tr v-if="products.length === 0">
-                <td colspan="6" class="text-muted py-3">No hay productos registrados.</td>
+                <td colspan="10" class="text-muted py-3">No hay productos registrados.</td>
               </tr>
             </tbody>
           </table>
@@ -70,8 +78,13 @@
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Categoría</label>
-                  <input v-model="currentProduct.categoria" type="text" class="form-control" required />
+                  <label class="form-label fw-semibold">Estado</label>
+                  <input v-model="currentProduct.estado" type="text" class="form-control" required />
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Descripción</label>
+                  <textarea v-model="currentProduct.descripcion" class="form-control"></textarea>
                 </div>
 
                 <div class="col-md-6">
@@ -97,14 +110,22 @@
                   />
                 </div>
 
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Editorial</label>
+                  <input v-model="currentProduct.editorial" type="text" class="form-control" />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Género</label>
+                  <input v-model="currentProduct.genero" type="text" class="form-control" />
+                </div>
+
                 <div class="col-12">
-                  <label class="form-label fw-semibold">URL Imagen</label>
-                  <input
-                    v-model="currentProduct.imagen"
-                    type="url"
-                    class="form-control"
-                    placeholder="https://imagen.jpg"
-                  />
+                  <label class="form-label fw-semibold">Imagen</label>
+                  <input type="file" accept="image/*" @change="handleImageUpload" />
+                  <div v-if="currentProduct.imagen_url" class="mt-2">
+                    <img :src="currentProduct.imagen_url" alt="Preview" style="max-width:150px;" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -127,7 +148,6 @@
 import { ref, onMounted, nextTick } from 'vue';
 import Swal from 'sweetalert2';
 import { Modal } from 'bootstrap';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const API_URL = 'http://localhost:3000/api/products';
 const products = ref([]);
@@ -139,18 +159,17 @@ const productModal = ref(null);
 
 let modalInstance = null;
 
-// 🔹 Cargar productos al montar
 onMounted(async () => {
   await fetchProducts();
 });
 
-// 🔹 Obtener todos los productos
 const fetchProducts = async () => {
   isLoading.value = true;
   try {
     const res = await fetch(API_URL);
     if (!res.ok) throw new Error('Error al obtener productos');
-    products.value = await res.json();
+    const data = await res.json();
+    products.value = data.data || [];
   } catch (err) {
     console.error(err);
     Swal.fire('Error', 'No se pudieron cargar los productos.', 'error');
@@ -159,25 +178,33 @@ const fetchProducts = async () => {
   }
 };
 
-// 🔹 Abrir modal (crear o editar)
 const openModal = async (edit = false, product = null) => {
   isEditing.value = edit;
   currentProduct.value = edit
     ? { ...product }
-    : { nombre: '', categoria: '', precio: 0, stock: 0, imagen: '' };
+    : { nombre: '', estado: '', descripcion: '', precio: 0, stock: 0, editorial: '', genero: '', imagen_url: '' };
 
-  // 🔸 Esperar a que el DOM renderice el modal antes de inicializarlo
   await nextTick();
   modalInstance = Modal.getOrCreateInstance(productModal.value);
   modalInstance.show();
 };
 
-// 🔹 Guardar o crear producto
+const handleImageUpload = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    currentProduct.value.imagen_url = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
 const saveProduct = async () => {
   isSaving.value = true;
   try {
     const method = isEditing.value ? 'PUT' : 'POST';
-    const url = isEditing.value ? `${API_URL}/${currentProduct.value.id}` : API_URL;
+    const url = isEditing.value ? `${API_URL}/${currentProduct.value.id_producto}` : `${API_URL}/create`;
 
     const token = localStorage.getItem('accessToken');
 
@@ -202,7 +229,6 @@ const saveProduct = async () => {
   }
 };
 
-// 🔹 Confirmar y eliminar producto
 const confirmDelete = async (product) => {
   const result = await Swal.fire({
     title: '¿Eliminar producto?',
@@ -215,11 +241,10 @@ const confirmDelete = async (product) => {
   });
 
   if (result.isConfirmed) {
-    await deleteProduct(product.id);
+    await deleteProduct(product.id_producto);
   }
 };
 
-// 🔹 Eliminar producto
 const deleteProduct = async (id) => {
   try {
     const token = localStorage.getItem('accessToken');

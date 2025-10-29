@@ -16,7 +16,8 @@ export const EmployeeModel = {
   create: async (userData) => {
     const { username, email, password, nombre, apellido, telefono, image_profile, id_role } = userData;
     const [result] = await pool.query(
-      `INSERT INTO UserEmps_STL (emp_username, emp_email, emp_password, emp_nombre, emp_apellido, emp_telefono, emp_image_profile, id_role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO UserEmps_STL (emp_username, emp_email, emp_password, emp_nombre, emp_apellido, emp_telefono, emp_image_profile, id_role) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [username, email, password, nombre, apellido, telefono, image_profile, id_role]
     );
     const [newEmployee] = await pool.query(
@@ -29,7 +30,7 @@ export const EmployeeModel = {
   // Obtener todos los usuarios empleados
   findAll: async () => {
     const [rows] = await pool.query(
-      `SELECT e.uuid_emp, e.emp_username, e.emp_email, r.nombre_rol
+      `SELECT e.uuid_emps, e.emp_nombre, e.emp_apellido, e.emp_telefono, e.emp_email, e.emp_username, r.nombre_rol
        FROM UserEmps_STL e 
        LEFT JOIN Role r ON e.id_role = r.id_role`
     );

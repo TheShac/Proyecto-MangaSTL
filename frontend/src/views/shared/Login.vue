@@ -63,15 +63,15 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
-import { useAuthStore } from '../stores/auth';
+import { useAuthStore } from '../../stores/auth';
 
 const authStore = useAuthStore();
-const identifier = ref(''); 
+const router = useRouter();
+
+const identifier = ref('');
 const password = ref('');
 const isLoading = ref(false);
 const error = ref(null);
-
-const router = useRouter();
 
 const login = async () => {
   error.value = null;
@@ -83,19 +83,42 @@ const login = async () => {
       password: password.value,
     });
 
-    const token = response.data.token;
-    
-    authStore.login(token);
-    
-    router.push({ name: 'Dashboard' }); 
+    console.log("Respuesta del servidor:", response.data);
+
+    const { token, role, userType, id, username } = response.data;
+
+    // Guarda todo en el store
+    authStore.login(token, role, userType, id, username);
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('role', role);
+    localStorage.setItem('userType', userType);
+
+    // Redirige según tipo
+    if (userType === 'employee') {
+      const adminRoles = [
+        'stl_administrador',
+        'stl_superadministrador',
+        'stl_emp'
+      ];
+      if (adminRoles.includes(role)) {
+        router.push({ name: 'AdminDashboard' });
+      }
+      else {
+        router.push({ name: 'Dashboard' });
+      }
+    } 
+    else {
+      router.push({ name: 'Dashboard' });
+    }
 
   } catch (err) {
-    console.error('Error de Inicio de Sesión:', err);
-    
-    error.value = err.response?.data?.message || 'Credenciales inválidas. Verifica tus datos.';
-
+    console.error('Error de inicio de sesión:', err);
+    console.error('Detalle de error:', err.response?.data);
+    error.value = err.response?.data?.message || err.message || 'Credenciales inválidas. Verifica tus datos.';
   } finally {
     isLoading.value = false;
   }
 };
+
 </script>
