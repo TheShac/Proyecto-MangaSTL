@@ -1,87 +1,149 @@
 <template>
-  <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm fixed-top">
-    <div class="container">
-      
-      <a class="navbar-brand d-flex align-items-center" @click="goHome" role="button">
-        <span class="text-warning h4 fw-black me-2 mb-0">MC</span> 
-        <span class="h5 text-dark fw-bold mb-0">Don Mangas</span>
-      </a>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
+    <div class="container-fluid">
 
-      <div class="d-flex align-items-center">
-        
-        <div v-if="!authStore.isLoggedIn" class="d-none d-md-flex align-items-center me-3">
-          <router-link to="/login" class="btn btn-link text-dark me-2">Iniciar Sesión</router-link>
-          <router-link to="/register" class="btn btn-warning text-white btn-sm fw-bold">Registrarse</router-link>
-        </div>
-        
-        <div v-else class="dropdown me-3">
-          <button class="btn btn-link text-dark dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-person-circle fs-5"></i> Mi Cuenta
+      <!-- 🟡 Nombre de la tienda -->
+      <router-link to="/" class="navbar-brand fw-bold text-dark">Don Mangas</router-link>
+
+      <div class="ms-auto d-flex align-items-center gap-3">
+
+        <!-- 🟢 Menú lateral -->
+        <button class="btn btn-outline-dark" @click="toggleMenu">
+          <i class="bi bi-list"></i> Menú
+        </button>
+
+        <!-- 🛒 Carrito -->
+        <router-link to="/carrito" class="btn btn-outline-dark position-relative">
+          <i class="bi bi-cart"></i>
+          <span
+            v-if="cartCount > 0"
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+          >
+            {{ cartCount }}
+          </span>
+        </router-link>
+
+        <!-- 🔐 Si NO hay usuario -->
+        <template v-if="!auth.isLoggedIn">
+          <router-link to="/login" class="btn btn-outline-dark">Iniciar sesión</router-link>
+          <router-link to="/register" class="btn btn-dark text-white">Registrar</router-link>
+        </template>
+
+        <!-- 👤 Si HAY usuario -->
+        <div v-else class="position-relative">
+          <button
+            class="btn btn-outline-dark d-flex align-items-center"
+            @click="toggleDropdown"
+          >
+            <i class="bi bi-person-circle me-1"></i>
+            Mi cuenta
           </button>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
-            <li><router-link to="/profile" class="dropdown-item">Mi Perfil</router-link></li>
-            <li><router-link to="/orders" class="dropdown-item">Mis Pedidos</router-link></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#" @click.prevent="logout">Cerrar Sesión</a></li>
-          </ul>
+
+          <!-- Dropdown personalizado -->
+          <div
+            v-if="dropdownOpen"
+            class="dropdown-menu-custom"
+            @click.stop
+          >
+            <router-link class="dropdown-item" to="/mis-pedidos">Mis pedidos</router-link>
+            <router-link class="dropdown-item" to="/profile">Mi perfil</router-link>
+            <hr class="dropdown-divider" />
+            <button class="dropdown-item text-danger" @click="cerrarSesion">
+              Cerrar sesión
+            </button>
+          </div>
         </div>
-        
-        <button @click="goCart" class="btn btn-sm btn-light position-relative me-2">
-            <i class="bi bi-cart"></i> 
-            <span v-if="cartCount" class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
-              {{ cartCount }}
-            </span>
-        </button>
-
-        <button @click="toggleAuth" class="btn btn-sm btn-light d-md-none me-2">
-            <i class="bi bi-person-circle"></i>
-        </button>
-
-        <button @click="toggleMenu" class="btn btn-sm btn-light d-flex flex-column align-items-center border-0 p-1">
-            <img :src="menuIcon" alt="Menú" style="width: 28px; height: 28px;">
-            <span class="small fw-bold text-dark mt-n1">Menú</span> 
-        </button>
       </div>
     </div>
 
-    <SidebarMenu :open="menuOpen" @close="menuOpen = false" />
-    <SidebarAuth :open="authOpen" @close="authOpen = false" />
+    <!-- Sidebar -->
+    <SidebarMenu :open="menuAbierto" @close="menuAbierto = false" />
   </nav>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import SidebarMenu from './SidebarMenu.vue';
-import SidebarAuth from './SidebarAuth.vue';
-import { useAuthStore } from '../stores/auth';
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useAuthStore } from '../stores/auth'
+import SidebarMenu from './SidebarMenu.vue'
 
-import menuIcon from '../assets/menu.png';
+const auth = useAuthStore()
+const menuAbierto = ref(false)
+const dropdownOpen = ref(false)
+const cartCount = ref(0)
 
-const router = useRouter();
-const authStore = useAuthStore();
-const menuOpen = ref(false);
-const authOpen = ref(false);
+function toggleMenu() {
+  menuAbierto.value = !menuAbierto.value
+}
 
-const cartCount = ref(0);
+function toggleDropdown() {
+  dropdownOpen.value = !dropdownOpen.value
+}
 
-const isLoggedIn = computed(() => authStore.isLoggedIn); 
+// Cerrar dropdown al hacer clic fuera
+function handleClickOutside(e) {
+  if (!e.target.closest('.position-relative')) dropdownOpen.value = false
+}
 
-const toggleMenu = () => (menuOpen.value = !menuOpen.value);
-const toggleAuth = () => (authOpen.value = !authOpen.value);
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
-const goHome = () => router.push({ path: '/' });
-const goCart = () => router.push({ name: 'Cart' }); 
-
-const logout = () => {
-  authStore.logout(); 
-  router.push({ name: 'Dashboard' });
-};
+function cerrarSesion() {
+  auth.logout()
+  dropdownOpen.value = false
+  window.location.reload()
+}
 </script>
 
 <style scoped>
-.dropdown-menu-end {
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* 🧭 Dropdown manual */
+.dropdown-menu-custom {
+  position: absolute;
   right: 0;
-  left: auto;
+  top: 110%;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 2000;
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: #212529;
+  text-decoration: none;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdown-divider {
+  margin: 0.25rem 0;
+  border-top: 1px solid #e9ecef;
+}
+
+/* 🔄 Animación */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

@@ -2,24 +2,31 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('accessToken') || null);
-  const role = ref(localStorage.getItem('role') || null);
-  const userType = ref(localStorage.getItem('userType') || null);
-  const id = ref(localStorage.getItem('userId') || null);
-  const username = ref(localStorage.getItem('username') || null);
+  const token = ref(null);
+  const role = ref(null);
+  const userType = ref(null);
+  const id = ref(null);
+  const username = ref(null);
 
   const isLoggedIn = computed(() => !!token.value);
+  const isAdmin = computed(() => role.value === 'stl_administrador' || role.value === 'stl_superadministrador');
 
-  const adminRoles = [
-    'stl_administrador',
-    'stl_superadministrador',
-    'stl_emp',
-    'stl_emp_nuevo',
-    'stl_practicante'
-  ];
+  function initializeAuth() {
+  const storedToken = localStorage.getItem('accessToken');
+  const storedRole = localStorage.getItem('role');
+  const storedUser = localStorage.getItem('username');
 
-  const isAdmin = computed(() => adminRoles.includes(role.value));
-  const isClient = computed(() => role.value === 'stl_cliente' || userType.value === 'cliente');
+  // ✅ Solo restaura si todos los datos están presentes
+    if (storedToken && storedRole && storedUser) {
+      token.value = storedToken;
+      role.value = storedRole;
+      username.value = storedUser;
+    } 
+    else {
+    logout();
+    }
+  }
+
 
   function login(accessToken, userRole, type, userId, userName) {
     token.value = accessToken;
@@ -45,5 +52,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.clear();
   }
 
-  return { token, role, userType, id, username, isLoggedIn, isAdmin, isClient, login, logout };
+  return { token, role, userType, id, username, isLoggedIn, isAdmin, login, logout, initializeAuth };
 });
